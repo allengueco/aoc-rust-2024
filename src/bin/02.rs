@@ -19,37 +19,15 @@ pub fn part_one(input: &str) -> Option<usize> {
         .collect();
 
     fn is_safe(numbers: Vec<u32>) -> Option<()> {
-        let (&first, rest) = numbers.split_first().unwrap();
 
-        let init = State {
-            prev: first,
-            direction: if first > rest[0] { Direction::Decreasing } else { Direction::Increasing },
-        };
-        rest.iter().fold(init, |mut state, &current| {
-            eprintln!("Cur state: {:?}", state);
-            // what is the direction after current?
-            let dir = if state.prev > current {
-                Direction::Decreasing
-            } else {
-                Direction::Increasing
-            };
+        let is_asc = numbers.windows(2).all(|w| w[0] < w[1]);
+        let is_des = numbers.windows(2).all(|w| w[0] > w[1]);
 
-            // its not the same as the current direction, return early
-            if dir != state.direction {
-                return state;
-            }
+        if !(is_asc || is_des) {
+            return None;
+        }
 
-            if (1..=3).contains(&state.prev.abs_diff(current)) {
-                state.prev = current;
-            }
-
-
-            eprintln!("End state: {:?}", state);
-            state
-        });
-
-        eprintln!();
-        Some(())
+        numbers.windows(2).all(|w| (1..=3).contains(&w[0].abs_diff(w[1]))).then_some(())
     }
 
     Some(
