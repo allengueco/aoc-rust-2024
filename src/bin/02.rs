@@ -10,58 +10,44 @@ struct State {
 enum Direction {
     Increasing,
     Decreasing,
-    Start,
 }
 
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            prev: u32::MIN,
-            direction: Direction::Start,
-        }
-    }
-}
 pub fn part_one(input: &str) -> Option<usize> {
     let reports: Vec<Vec<u32>> = input
         .lines()
         .map(|line| line.split(" ").map(|n| n.parse().unwrap()).collect())
         .collect();
 
-    eprintln!("{:?}", reports);
-
     fn is_safe(numbers: Vec<u32>) -> Option<()> {
-        numbers.iter().fold(None, |state, &current| {
-            eprintln!("Current state: {:?}", state);
-            // if the first, we just set the prev to current
-            if state.is_none() {
-                return Some(State {
-                    prev: current,
-                    direction: Direction::Start,
-                });
-            }
+        let (&first, rest) = numbers.split_first().unwrap();
 
-            let mut state = state.unwrap();
-
+        let init = State {
+            prev: first,
+            direction: if first > rest[0] { Direction::Decreasing } else { Direction::Increasing },
+        };
+        rest.iter().fold(init, |mut state, &current| {
+            eprintln!("Cur state: {:?}", state);
             // what is the direction after current?
             let dir = if state.prev > current {
                 Direction::Decreasing
             } else {
                 Direction::Increasing
             };
-            state.direction = dir;
 
             // its not the same as the current direction, return early
             if dir != state.direction {
-                return None;
+                return state;
             }
 
             if (1..=3).contains(&state.prev.abs_diff(current)) {
                 state.prev = current;
-                Some(state)
-            } else {
-                None
             }
-        })?;
+
+
+            eprintln!("End state: {:?}", state);
+            state
+        });
+
         eprintln!();
         Some(())
     }
