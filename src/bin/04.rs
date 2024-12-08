@@ -63,7 +63,7 @@ impl Direction {
 
 fn neighbors(root: (usize, usize)) -> impl Iterator<Item = Neighbor> {
     Direction::all().map(|d| d.dir()).map(|(i, j)| Neighbor {
-        i: root.0 + i,
+        i: root.0.wrapping_add(i),
         j: root.1 + j,
     })
 }
