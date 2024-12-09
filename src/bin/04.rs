@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 advent_of_code::solution!(4);
 
 const WORD: &str = "XMAS";
@@ -9,7 +11,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     for (i, row) in puzzle.iter().enumerate() {
         for (j, ch) in row.iter().enumerate() {
             if *ch == 'X' {
-                words += search((i, j), 0);
+                words += search(&puzzle, (i, j));
             }
         }
     }
@@ -68,10 +70,16 @@ fn neighbors(root: (usize, usize)) -> impl Iterator<Item = Neighbor> {
     })
 }
 
-fn search(root: (usize, usize), index: usize) -> u32 {
+fn search(puzzle: &Vec<Vec<char>>, root: (usize, usize)) -> u32 {
+    let mut index = 0;
     let mut frontier: Vec<(usize, usize)> = vec![root];
 
-    while let Some(current) = frontier.pop() {}
+    while let Some(current) = frontier.pop() {
+        // If current matches the letter we're looking for
+        if WORD.as_bytes()[index] as char == puzzle[current.0][current.1] {
+            index += 1;
+        }
+    }
     0
 }
 
