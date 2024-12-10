@@ -31,17 +31,21 @@ impl Graph {
     }
 
     fn process(&self, update: &Update) -> Option<usize> {
-        let mut sum = 0;
-        for (first, rest) in update.iter().skip(1) {
+        eprintln!("{update:?}");
+        for (first, rest) in update.iter() {
+            eprintln!("\t{{ {first:?} {rest:?}");
             let value = self.table.get(first)?;
-            if let Some(m) = rest {
-                eprintln!("{value:?} == {rest:?}");
-                if value.iter().all(|v| m.contains(v)) {
-                    sum += update.middle();
-                }
+            let rest = rest?;
+            eprintln!("{{ {first:?} : {value:?} }} rest: {rest:?}");
+            if rest == value || rest.iter().all(|r| value.contains(r)) {
+                continue;
+            } else {
+                eprintln!("\trest: {rest:?} value: {value:?}");
+                return None;
             }
         }
-        Some(sum)
+        eprintln!("GOT HERE");
+        Some(update.middle())
     }
 }
 
@@ -65,7 +69,7 @@ impl Update {
         }
     }
     fn middle(&self) -> usize {
-        dbg!(self.node[self.size / 2])
+        self.node[self.size / 2]
     }
     fn iter(&self) -> UpdateIterator<'_> {
         UpdateIterator {
@@ -85,30 +89,24 @@ impl<'a> Iterator for UpdateIterator<'a> {
     type Item = (&'a usize, Option<&'a [usize]>);
 
     fn next(&mut self) -> Option<Self::Item> {
+        let (left, right) = self.update.node.split_at_checked(self.current_index)?;
         self.current_index += 1;
-        match self.update.node.split_at_checked(self.current_index) {
-            None => None,
-            Some((left, right)) => {
-                match right {
-                    [] => None,
-                    r => left.last().map(|last| (last, Some(r)))
-                }
-            }
-        }
+        left.last().map(|last| (last, Some(right)))
     }
 }
 pub fn part_one(input: &str) -> Option<usize> {
-    let p: Vec<&str> = input.split("\r\n\r\n").collect();
+    let p: Vec<&str> = input.split("\n\n").collect();
     let g = Graph::new(p[0]);
     let us = p[1]
-        .split("\r\n")
+        .split("\n")
         .collect::<Vec<&str>>()
         .into_iter()
         .map(Update::new)
+        // .skip(3)
+        // .take(1)
         .collect::<Vec<Update>>();
 
-
-    Some(us.into_iter().filter_map(|u| g.process(&u)).sum())
+    Some(us.into_iter().filter_map(|u| g.process(&u)).inspect(|u| eprintln!("\t\t{u:?}")).sum())
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
